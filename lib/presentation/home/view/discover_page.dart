@@ -15,10 +15,36 @@ class _DiscoverPageState extends State<DiscoverPage> {
   final PageController _pageController = PageController();
   List<bool> liked = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(_onScroll);
+    // İlk filmleri yükle (main.dart'ta da çağrılıyor, burada tekrar çağırmaya gerek yok)
+  }
+
+  void _onScroll() {
+    final cubit = context.read<HomeCubit>();
+    final state = cubit.state;
+    if (state is HomeLoaded) {
+      // Son karta gelindiyse yeni filmleri yükle
+      if (_pageController.page != null &&
+          _pageController.page!.round() >= state.movies.length - 1) {
+        cubit.fetchMovies(loadMore: true);
+      }
+    }
+  }
+
   void _toggleLike(int index) {
     setState(() {
       liked[index] = !liked[index];
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.removeListener(_onScroll);
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override

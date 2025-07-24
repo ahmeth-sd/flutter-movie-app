@@ -1,20 +1,35 @@
+import 'dart:math';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../domain/usecases/get_movies_usecase.dart';
+import '../../../data/repositories/movie_repository.dart';
 import '../../../domain/entities/movie.dart';
 import 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  final GetMoviesUseCase getMoviesUseCase;
+  final MovieRepository movieRepository;
+  final Random _random = Random();
+  bool _isLoadingMore = false;
+  final List<Movie> _allMovies = [];
 
-  HomeCubit(this.getMoviesUseCase) : super(HomeInitial());
+  HomeCubit(this.movieRepository) : super(HomeInitial());
 
-  Future<void> fetchMovies() async {
-    emit(HomeLoading());
+  Future<void> fetchMovies({bool loadMore = false}) async {
+    if (_isLoadingMore) return;
+    _isLoadingMore = true;
+
+    if (!loadMore) {
+      emit(HomeLoading());
+      _allMovies.clear();
+    }
+
     try {
-      final movies = await getMoviesUseCase(1);
-      emit(HomeLoaded(movies));
+      int randomPage = _random.nextInt(500) + 1;
+      final movies = await movieRepository.getMovies(randomPage);
+      _allMovies.addAll(movies);
+      emit(HomeLoaded(List.from(_allMovies)));
     } catch (e) {
       emit(HomeError('Hata: $e'));
+    } finally {
+      _isLoadingMore = false;
     }
   }
 }
