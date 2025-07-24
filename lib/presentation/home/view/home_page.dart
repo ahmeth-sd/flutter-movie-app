@@ -4,7 +4,18 @@ import '../viewmodel/home_cubit.dart';
 import '../viewmodel/home_state.dart';
 import '../widgets/movie_card.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomeCubit>().fetchMovies();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
