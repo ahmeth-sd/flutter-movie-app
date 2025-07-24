@@ -102,18 +102,28 @@ class _DiscoverPageState extends State<DiscoverPage> {
                         ],
                       ),
                     ),
+
                     Positioned(
-                      top: 50,
+                      top: 450,
                       right: 20,
-                      child: IconButton(
-                        icon: Icon(
-                          liked[index] ? Icons.favorite : Icons.favorite_border,
-                          color: liked[index] ? Colors.red : Colors.white,
-                          size: 30,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.black.withOpacity(0.5),
                         ),
-                        onPressed: () => _toggleLike(index),
+                        child: IconButton(
+                          icon: Icon(
+                            liked[index] ? Icons.favorite : Icons.favorite_border,
+                            color: liked[index] ? Colors.red : Colors.white,
+                            size: 30,
+                          ),
+                          onPressed: () => _toggleLike(index),
+                        ),
                       ),
                     ),
+
+
+
                   ],
                 );
               },
