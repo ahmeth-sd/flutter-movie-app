@@ -1,39 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'home_cubit.dart';
-import 'home_state.dart';
-import 'movie_repository.dart';
+import '../viewmodel/home_cubit.dart';
+import '../viewmodel/home_state.dart';
+import '../widgets/movie_card.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Shartflix Demo')),
+      appBar: AppBar(
+        title: Text('Popüler Filmler'),
+      ),
       body: BlocBuilder<HomeCubit, HomeState>(
         builder: (context, state) {
           if (state is HomeLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           } else if (state is HomeLoaded) {
             return ListView.builder(
               itemCount: state.movies.length,
               itemBuilder: (context, index) {
-                final movie = state.movies[index];
-                return Card(
-                  child: ListTile(
-                    leading: Image.network(movie.imageUrl ?? ''),
-                    title: Text(movie.title),
-                    subtitle: Text(movie.description ?? ''),
-                  ),
-                );
+                return MovieCard(movie: state.movies[index]);
               },
             );
           } else if (state is HomeError) {
             return Center(child: Text(state.message));
           }
-          return const SizedBox.shrink();
+          return Center(child: Text('Hoş geldiniz!'));
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.read<HomeCubit>().fetchMovies(),
+        child: Icon(Icons.refresh),
       ),
     );
   }

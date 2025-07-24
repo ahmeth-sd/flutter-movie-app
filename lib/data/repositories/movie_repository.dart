@@ -1,27 +1,11 @@
 import 'package:dio/dio.dart';
-
-class Movie {
-  final int id;
-  final String title;
-  final String? description;
-  final String? imageUrl;
-
-  Movie({
-    required this.id,
-    required this.title,
-    this.description,
-    this.imageUrl,
-  });
-}
-
-abstract class IMovieRepository {
-  Future<List<Movie>> getMovies(int page);
-}
+import '../../domain/entities/movie.dart';
+import '../../domain/repositories/movie_repo_impl.dart';
+import '../models/movie_model.dart';
 
 class MovieRepository implements IMovieRepository {
   final Dio dio;
 
-  // API anahtarını constructor’dan alabilirsin
   MovieRepository(this.dio);
 
   @override
@@ -37,14 +21,15 @@ class MovieRepository implements IMovieRepository {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['results'];
-        return data.map((json) {
+        final List data = response.data['results'];
+        return data.map<Movie>((json) {
+          final model = MovieModel.fromJson(json);
           return Movie(
-            id: json['id'],
-            title: json['title'] ?? '',
-            description: json['overview'] ?? '',
-            imageUrl: json['poster_path'] != null
-                ? 'https://image.tmdb.org/t/p/w500${json['poster_path']}'
+            id: model.id,
+            title: model.title,
+            description: model.overview,
+            imageUrl: model.posterPath != null
+                ? 'https://image.tmdb.org/t/p/w500${model.posterPath}'
                 : null,
           );
         }).toList();

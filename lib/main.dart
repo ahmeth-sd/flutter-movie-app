@@ -1,26 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
-import 'movie_repository.dart';
-import 'home_cubit.dart';
-import 'home_page.dart';
+import 'data/repositories/movie_repository.dart';
+import 'domain/usecases/get_movies_usecase.dart';
+import 'presentation/home/viewmodel/home_cubit.dart';
+import 'presentation/home/view/home_page.dart';
 
 void main() {
-  final movieRepository = MovieRepository(Dio());
-  runApp(MyApp(movieRepository: movieRepository));
+  final dio = Dio();
+  final movieRepository = MovieRepository(dio);
+  final getMoviesUseCase = GetMoviesUseCase(movieRepository);
+
+  runApp(MyApp(getMoviesUseCase: getMoviesUseCase));
 }
 
 class MyApp extends StatelessWidget {
-  final MovieRepository movieRepository;
-  const MyApp({super.key, required this.movieRepository});
+  final GetMoviesUseCase getMoviesUseCase;
+  const MyApp({super.key, required this.getMoviesUseCase});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Shartflix Demo',
       home: BlocProvider(
-        create: (_) => HomeCubit(movieRepository)..fetchMovies(),
-        child: const HomePage(),
+        create: (_) => HomeCubit(getMoviesUseCase)..fetchMovies(),
+        child: HomePage(), // const kaldırıldı
       ),
     );
   }
