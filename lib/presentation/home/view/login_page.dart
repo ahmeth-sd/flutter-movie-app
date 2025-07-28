@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shartflix_movie_app/presentation/home/view/register_page.dart';
+import 'package:shartflix_movie_app/presentation/home/view/main_screen.dart';
 import '../../../data/services/auth_service.dart';
 import '../viewmodel/auth_viewmodel.dart';
 import '../widgets/custom_text_field.dart';
@@ -92,7 +93,7 @@ class LoginPage extends StatelessWidget {
                       if (authViewModel.user != null) {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => const HomePage()),
+                          MaterialPageRoute(builder: (context) => const MainScreen()),
                         );
                       }
 

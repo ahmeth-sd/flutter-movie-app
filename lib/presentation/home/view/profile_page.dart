@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../viewmodel/auth_viewmodel.dart';
 import '../viewmodel/login_viewmodel.dart';
 import '../viewmodel/profile_viewmodel.dart';
@@ -18,6 +19,7 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProfileViewModel>().loadFavorites();
+      context.read<AuthViewModel>().fetchUserName();
     });
   }
 
@@ -25,7 +27,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProfileViewModel>();
     final authViewModel = context.watch<AuthViewModel>();
-    final userName = authViewModel.user?.displayName ?? "Kullanıcı";
+    final isLoading = authViewModel.isUserNameLoading;
+    final userName = authViewModel.userName;
 
 
     return Scaffold(
@@ -72,12 +75,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                            userName,
+                            isLoading ? 'Yükleniyor...' : (userName ?? 'Kullanıcı'),
                             style: const TextStyle(color: Colors.white, fontSize: 18)),
                         const SizedBox(height: 4),
-                        const Text("ID: 245677",
-                            style: TextStyle(
-                                color: Colors.white54, fontSize: 14)),
+                        Text(
+                          authViewModel.user?.email ?? '-',
+                          style: const TextStyle(
+                              color: Colors.white54, fontSize: 14),
+                        ),
                       ],
                     ),
                   ),

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../../data/services/auth_service.dart';
@@ -48,6 +49,7 @@ class AuthViewModel extends ChangeNotifier {
   // Auth durumları
   User? _user;
   User? get user => _user;
+  User? get currentUser => _authService.currentUser;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -91,6 +93,11 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  void setUser(User user) {
+    _user = user;
+    notifyListeners();
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
@@ -101,5 +108,25 @@ class AuthViewModel extends ChangeNotifier {
     emailController.clear();
     passwordController.clear();
     repeatPasswordController.clear();
+  }
+
+  // Kullanıcı adı durumu
+  String? _userName;
+  String? get userName => _userName;
+  bool _isUserNameLoading = false;
+  bool get isUserNameLoading => _isUserNameLoading;
+
+  Future<void> fetchUserName() async {
+    _isUserNameLoading = true;
+    notifyListeners();
+    final user = _user;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      _userName = doc.data()?['name'] ?? 'Kullanıcı';
+    } else {
+      _userName = 'Kullanıcı';
+    }
+    _isUserNameLoading = false;
+    notifyListeners();
   }
 }
