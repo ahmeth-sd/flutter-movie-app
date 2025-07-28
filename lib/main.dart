@@ -8,8 +8,15 @@ import 'package:shartflix_movie_app/presentation/home/viewmodel/navigation_vievm
 import 'package:shartflix_movie_app/presentation/home/widgets/custom_bottom_navbar.dart';
 import 'package:shartflix_movie_app/data/repositories/movie_repository.dart';
 import 'package:dio/dio.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shartflix_movie_app/data/models/movie_model.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(MovieModelAdapter());
+  await Hive.openBox<MovieModel>('favorites');
+
   final dio = Dio();
   final movieRepository = MovieRepository(dio);
 

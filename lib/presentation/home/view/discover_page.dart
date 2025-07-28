@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/movie.dart';
 import '../viewmodel/home_cubit.dart';
 import '../viewmodel/home_state.dart';
+import '../../../data/storage/favorites_storage.dart';
+import '../../../data/models/movie_model.dart';
 
 class DiscoverPage extends StatefulWidget {
   const DiscoverPage({Key? key}) : super(key: key);
@@ -14,6 +16,7 @@ class DiscoverPage extends StatefulWidget {
 class _DiscoverPageState extends State<DiscoverPage> {
   final PageController _pageController = PageController();
   List<bool> liked = [];
+  final FavoritesStorage _favoritesStorage = FavoritesStorage();
 
   @override
   void initState() {
@@ -34,10 +37,24 @@ class _DiscoverPageState extends State<DiscoverPage> {
     }
   }
 
-  void _toggleLike(int index) {
+  Future<void> _toggleLike(int index, movie) async {
     setState(() {
       liked[index] = !liked[index];
     });
+    if (liked[index]) {
+      // Favoriye ekle
+      final movieModel = MovieModel(
+        id: movie.id,
+        title: movie.title,
+        overview: movie.description,
+        posterPath: movie.imageUrl != null && movie.imageUrl!.contains('/w500')
+            ? movie.imageUrl!.replaceFirst('https://image.tmdb.org/t/p/w500', '')
+            : movie.imageUrl,
+      );
+      await _favoritesStorage.addFavorite(movieModel);
+    } else {
+      await _favoritesStorage.removeFavorite(movie.id);
+    }
   }
 
   @override
@@ -58,7 +75,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
           } else if (state is HomeLoaded) {
             final movies = state.movies;
             if (liked.length != movies.length) {
-              liked = List<bool>.filled(movies.length, false);
+              liked = List<bool>.generate(
+                movies.length,
+                (i) => _favoritesStorage.isFavorite(movies[i].id),
+              );
             }
             return PageView.builder(
               scrollDirection: Axis.vertical,
@@ -117,7 +137,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                             color: liked[index] ? Colors.red : Colors.white,
                             size: 30,
                           ),
-                          onPressed: () => _toggleLike(index),
+                          onPressed: () => _toggleLike(index, movie),
                         ),
                       ),
                     ),
