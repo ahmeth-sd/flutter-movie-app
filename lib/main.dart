@@ -22,7 +22,7 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(MovieModelAdapter());
   await Hive.openBox<MovieModel>('favorites');
-  //await Firebase.initializeApp();
+  await Firebase.initializeApp();
 
 
   runApp(
