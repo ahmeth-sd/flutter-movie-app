@@ -5,6 +5,7 @@ import '../../../data/services/auth_service.dart';
 import '../viewmodel/auth_viewmodel.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/social_login_button.dart';
+import 'home_page.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -86,8 +87,15 @@ class LoginPage extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: authViewModel.isLoading
                         ? null
-                        : () {
-                      authViewModel.login();
+                        : () async{
+                      await authViewModel.login();
+                      if (authViewModel.user != null) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const HomePage()),
+                        );
+                      }
+
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,

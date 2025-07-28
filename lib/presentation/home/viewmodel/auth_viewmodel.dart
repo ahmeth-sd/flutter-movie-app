@@ -78,9 +78,10 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> register() async {
     _setLoading(true);
     try {
-      _user = await _authService.register(
-        emailController.text.trim(),
-        passwordController.text.trim(),
+      _user = await _authService.registerUser(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+        name: nameController.text.trim(),
       );
       _errorMessage = null;
     } catch (e) {

@@ -123,8 +123,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         return;
                       }
 
-                      final name = authViewModel.nameController.text.trim();
-                      final email = authViewModel.emailController.text.trim();
                       final pass1 = authViewModel.passwordController.text;
                       final pass2 = authViewModel.repeatPasswordController.text;
 

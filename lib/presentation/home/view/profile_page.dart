@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../viewmodel/auth_viewmodel.dart';
 import '../viewmodel/login_viewmodel.dart';
 import '../viewmodel/profile_viewmodel.dart';
 import 'login_page.dart';
@@ -23,6 +24,9 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProfileViewModel>();
+    final authViewModel = context.watch<AuthViewModel>();
+    final userName = authViewModel.user?.displayName ?? "Kullanıcı";
+
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -63,14 +67,15 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Ayça Aydoğan",
-                            style: TextStyle(color: Colors.white, fontSize: 18)),
-                        SizedBox(height: 4),
-                        Text("ID: 245677",
+                        Text(
+                            userName,
+                            style: const TextStyle(color: Colors.white, fontSize: 18)),
+                        const SizedBox(height: 4),
+                        const Text("ID: 245677",
                             style: TextStyle(
                                 color: Colors.white54, fontSize: 14)),
                       ],
