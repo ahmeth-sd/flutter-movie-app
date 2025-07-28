@@ -15,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkAuth();
+    Future.delayed(const Duration(seconds: 2), _checkAuth);
   }
 
   Future<void> _checkAuth() async {
@@ -40,8 +40,11 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: Colors.black,
-      body: Center(
-        child: CircularProgressIndicator(color: Colors.red),
+      body: SizedBox.expand(
+        child: Image(
+          image: AssetImage('assets/SinFlixSplash.png'),
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
