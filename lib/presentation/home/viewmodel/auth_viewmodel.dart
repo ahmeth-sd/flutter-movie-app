@@ -7,22 +7,98 @@ class AuthViewModel extends ChangeNotifier {
 
   AuthViewModel(this._authService);
 
+  // Ortak controllerlar
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController repeatPasswordController = TextEditingController();
+
+  // Şifre gizleme
+  bool _obscure1 = true;
+  bool get obscure1 => _obscure1;
+  void toggleObscure1() {
+    _obscure1 = !_obscure1;
+    notifyListeners();
+  }
+
+  bool _obscure2 = true;
+  bool get obscure2 => _obscure2;
+  void toggleObscure2() {
+    _obscure2 = !_obscure2;
+    notifyListeners();
+  }
+
+  // Şifre 1 için toggle fonksiyonu (register ve login için ortak)
+  void togglePasswordVisibility() {
+    _obscure1 = !_obscure1;
+    notifyListeners();
+  }
+
+  // Login için backward compatibility: obscurePassword getter
+  bool get obscurePassword => _obscure1;
+
+  // Kullanıcı sözleşmesi
+  bool _termsAccepted = false;
+  bool get termsAccepted => _termsAccepted;
+  void setTermsAccepted(bool value) {
+    _termsAccepted = value;
+    notifyListeners();
+  }
+
+  // Auth durumları
   User? _user;
   User? get user => _user;
 
-  Future<void> login(String email, String password) async {
-    _user = await _authService.login(email, password);
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
+  void clearError() {
+    _errorMessage = null;
     notifyListeners();
   }
 
-  Future<void> register(String email, String password) async {
-    _user = await _authService.register(email, password);
+  Future<void> login() async {
+    _setLoading(true);
+    try {
+      _user = await _authService.login(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = 'Giriş başarısız: $e';
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> register() async {
+    _setLoading(true);
+    try {
+      _user = await _authService.register(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = 'Kayıt başarısız: $e';
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  void _setLoading(bool value) {
+    _isLoading = value;
     notifyListeners();
   }
 
-  Future<void> logout() async {
-    await _authService.logout();
-    _user = null;
-    notifyListeners();
+  void clearControllers() {
+    nameController.clear();
+    emailController.clear();
+    passwordController.clear();
+    repeatPasswordController.clear();
   }
 }

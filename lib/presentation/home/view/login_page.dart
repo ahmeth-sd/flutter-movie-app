@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shartflix_movie_app/presentation/home/widgets/custom_text_field.dart';
-import '../viewmodel/login_viewmodel.dart';
+import 'package:shartflix_movie_app/presentation/home/view/register_page.dart';
+import '../../../data/services/auth_service.dart';
+import '../viewmodel/auth_viewmodel.dart';
+import '../widgets/custom_text_field.dart';
 import '../widgets/social_login_button.dart';
 
 class LoginPage extends StatelessWidget {
@@ -9,8 +11,7 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<LoginViewModel>();
-
+    final authViewModel = context.watch<AuthViewModel>();
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -39,7 +40,7 @@ class LoginPage extends StatelessWidget {
 
                 // Email input
                 CustomTextField(
-                  controller: viewModel.emailController,
+                  controller: authViewModel.emailController,
                   icon: Icons.mail_outline,
                   hint: "E-Posta",
                 ),
@@ -48,18 +49,18 @@ class LoginPage extends StatelessWidget {
 
                 // Password input
                 CustomTextField(
-                  controller: viewModel.passwordController,
+                  controller: authViewModel.passwordController,
                   icon: Icons.lock_outline,
                   hint: "Şifre",
-                  obscure: viewModel.obscurePassword,
+                  obscure: authViewModel.obscurePassword,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      viewModel.obscurePassword
+                      authViewModel.obscurePassword
                           ? Icons.visibility_off
                           : Icons.visibility,
                       color: Colors.white54,
                     ),
-                    onPressed: viewModel.togglePasswordVisibility,
+                    onPressed: authViewModel.togglePasswordVisibility,
                   ),
                 ),
 
@@ -83,17 +84,17 @@ class LoginPage extends StatelessWidget {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: viewModel.isLoading
+                    onPressed: authViewModel.isLoading
                         ? null
                         : () {
-                      viewModel.login();
+                      authViewModel.login();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: viewModel.isLoading
+                    child: authViewModel.isLoading
                         ? const CircularProgressIndicator(
                       color: Colors.white,
                     )
@@ -129,7 +130,12 @@ class LoginPage extends StatelessWidget {
                     const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () {
-                        // Register sayfasına git
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RegisterPage(),
+                          ),
+                        );
                       },
                       child: const Text(
                         "Kayıt Ol!",
