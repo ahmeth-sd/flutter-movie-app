@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
-import '../../../domain/entities/movie.dart';
+import 'package:provider/provider.dart';
+import '../viewmodel/profile_viewmodel.dart';
 
-class ProfilePage extends StatelessWidget {
-  final List<Movie> favoriteMovies;
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({Key? key}) : super(key: key);
 
-  const ProfilePage({super.key, required this.favoriteMovies});
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProfileViewModel>().loadFavorites();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<ProfileViewModel>();
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -16,7 +30,7 @@ class ProfilePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔙 Header
+              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -25,7 +39,7 @@ class ProfilePage extends StatelessWidget {
                       style: TextStyle(color: Colors.white, fontSize: 18)),
                   Container(
                     padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.red,
                       borderRadius: BorderRadius.circular(30),
@@ -37,7 +51,7 @@ class ProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // 👤 Kullanıcı Bilgileri
+              // Kullanıcı Bilgileri
               Row(
                 children: [
                   const CircleAvatar(
@@ -77,10 +91,10 @@ class ProfilePage extends StatelessWidget {
                   style: TextStyle(color: Colors.white, fontSize: 16)),
               const SizedBox(height: 12),
 
-              // 🎞 Favori Filmler Grid
+              // Favori Filmler Grid
               Expanded(
                 child: GridView.builder(
-                  itemCount: favoriteMovies.length,
+                  itemCount: viewModel.favoriteMovies.length,
                   padding: const EdgeInsets.only(bottom: 15),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
@@ -89,7 +103,7 @@ class ProfilePage extends StatelessWidget {
                     childAspectRatio: 0.6,
                   ),
                   itemBuilder: (context, index) {
-                    final movie = favoriteMovies.reversed.toList()[index];
+                    final movie = viewModel.favoriteMovies[index];
                     return LayoutBuilder(
                       builder: (context, constraints) {
                         return ClipRRect(
@@ -143,4 +157,3 @@ class ProfilePage extends StatelessWidget {
     );
   }
 }
-
