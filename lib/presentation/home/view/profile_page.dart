@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../viewmodel/login_viewmodel.dart';
 import '../viewmodel/profile_viewmodel.dart';
+import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -80,7 +82,17 @@ class _ProfilePageState extends State<ProfilePage> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 8, horizontal: 12),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChangeNotifierProvider(
+                            create: (_) => LoginViewModel(),
+                            child: const LoginPage(),
+                          ),
+                        ),
+                      );
+                    },
                     child: const Text("Fotoğraf Ekle"),
                   ),
                 ],
