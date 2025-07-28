@@ -1,4 +1,4 @@
-import '../../../domain/entities/movie.dart';
+import '../../../domain/entities/movie_page_result.dart';
 
 abstract class HomeState {}
 
@@ -7,9 +7,9 @@ class HomeInitial extends HomeState {}
 class HomeLoading extends HomeState {}
 
 class HomeLoaded extends HomeState {
-  final List<Movie> movies;
+  final MoviePageResult pageResult;
 
-  HomeLoaded(this.movies);
+  HomeLoaded(this.pageResult);
 }
 
 class HomeError extends HomeState {

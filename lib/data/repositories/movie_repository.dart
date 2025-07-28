@@ -1,43 +1,37 @@
-import 'package:dio/dio.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../models/movie_model.dart';
 import '../../domain/entities/movie.dart';
 import '../../domain/repositories/movie_repo_impl.dart';
-import '../models/movie_model.dart';
+import '../services/auth_service.dart';
+import '../datasources/movie_remote_datasource.dart';
+import '../../domain/entities/movie_page_result.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class MovieRepository implements IMovieRepository {
-  final Dio dio;
+  final AuthService authService;
+  final http.Client client;
+  final MovieRemoteDataSource remoteDataSource;
+  final FlutterSecureStorage secureStorage;
 
-  MovieRepository(this.dio);
+  MovieRepository({
+    required this.authService,
+    required this.client,
+    required this.remoteDataSource,
+    required this.secureStorage,
+  });
 
+  // MoviePageResult döndüren yeni fonksiyon
+  Future<MoviePageResult> getMoviesPageResult(int page) async {
+    final token = await secureStorage.read(key: 'token');
+    if (token == null) throw Exception('Kullanıcı tokenı bulunamadı!');
+    return await remoteDataSource.getMovies(page: page, token: token);
+  }
+
+  // Eski interface ile uyumlu, sadece film listesi döndüren fonksiyon
   @override
   Future<List<Movie>> getMovies(int page) async {
-    try {
-      final response = await dio.get(
-        'https://api.themoviedb.org/3/movie/popular',
-        queryParameters: {
-          'api_key': 'eea62e401d7586996e90c9846813d444',
-          'language': 'en-US',
-          'page': page,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List data = response.data['results'];
-        return data.map<Movie>((json) {
-          final model = MovieModel.fromJson(json);
-          return Movie(
-            id: model.id,
-            title: model.title,
-            description: model.overview,
-            imageUrl: model.posterPath != null
-                ? 'https://image.tmdb.org/t/p/w500${model.posterPath}'
-                : null,
-          );
-        }).toList();
-      } else {
-        throw Exception('Film listesi alınamadı. Kod: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Film verisi alınırken hata oluştu: $e');
-    }
+    final result = await getMoviesPageResult(page);
+    return result.movies;
   }
 }

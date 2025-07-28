@@ -90,7 +90,7 @@ class LoginPage extends StatelessWidget {
                         ? null
                         : () async{
                       await authViewModel.login();
-                      if (authViewModel.user != null) {
+                      if (authViewModel.loginModel != null) {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(builder: (context) => const MainScreen()),

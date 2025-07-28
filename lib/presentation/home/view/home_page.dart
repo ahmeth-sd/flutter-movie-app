@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../domain/entities/movie.dart';
 import '../viewmodel/home_cubit.dart';
 import '../viewmodel/home_state.dart';
-import '../../../data/storage/favorites_storage.dart';
 import '../../../data/models/movie_model.dart';
+import '../../../data/datasources/favorite_movie_remote_datasource.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -16,7 +17,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final PageController _pageController = PageController();
   List<bool> liked = [];
-  final FavoritesStorage _favoritesStorage = FavoritesStorage();
+  final FavoriteMovieRemoteDataSource _favoriteMovieRemoteDataSource = FavoriteMovieRemoteDataSourceImpl(client: http.Client());
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   @override
   void initState() {
@@ -29,8 +31,9 @@ class _HomePageState extends State<HomePage> {
     final cubit = context.read<HomeCubit>();
     final state = cubit.state;
     if (state is HomeLoaded) {
+      final movies = state.pageResult.movies;
       if (_pageController.page != null &&
-          _pageController.page!.round() >= state.movies.length - 1) {
+          _pageController.page!.round() >= movies.length - 1) {
         cubit.fetchMovies(loadMore: true);
       }
     }
@@ -40,18 +43,15 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       liked[index] = !liked[index];
     });
-    if (liked[index]) {
-      final movieModel = MovieModel(
-        id: movie.id,
-        title: movie.title,
-        overview: movie.description,
-        posterPath: movie.imageUrl != null && movie.imageUrl!.contains('/w500')
-            ? movie.imageUrl!.replaceFirst('https://image.tmdb.org/t/p/w500', '')
-            : movie.imageUrl,
-      );
-      await _favoritesStorage.addFavorite(movieModel);
-    } else {
-      await _favoritesStorage.removeFavorite(movie.id);
+    final token = await _secureStorage.read(key: 'token');
+    if (token == null) return;
+    try {
+      await _favoriteMovieRemoteDataSource.toggleFavorite(token, movie.id.toString());
+    } catch (e) {
+      // Hata yönetimi
+      setState(() {
+        liked[index] = !liked[index]; // Geri al
+      });
     }
   }
 
@@ -75,11 +75,11 @@ class _HomePageState extends State<HomePage> {
             if (state is HomeLoading) {
               return const Center(child: CircularProgressIndicator());
             } else if (state is HomeLoaded) {
-              final movies = state.movies;
+              final movies = state.pageResult.movies;
               if (liked.length != movies.length) {
                 liked = List<bool>.generate(
                   movies.length,
-                      (i) => _favoritesStorage.isFavorite(movies[i].id),
+                  (i) => false,
                 );
               }
               return PageView.builder(
@@ -91,11 +91,14 @@ class _HomePageState extends State<HomePage> {
                   return Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.network(
-                        movie.imageUrl ?? '',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey),
-                      ),
+                      if (movie.imageUrl != null && movie.imageUrl!.isNotEmpty)
+                        Image.network(
+                          movie.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey),
+                        )
+                      else
+                        Container(color: Colors.grey),
                       Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(

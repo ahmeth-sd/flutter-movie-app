@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodel/auth_viewmodel.dart';
 import 'login_page.dart';
 import 'main_screen.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -19,16 +20,16 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
-    final authViewModel = context.read<AuthViewModel>();
-    final user = authViewModel.user ?? authViewModel.currentUser;
-    if (user != null) {
-      authViewModel.setUser(user);
-      await authViewModel.fetchUserName();
+    final storage = const FlutterSecureStorage();
+    final token = await storage.read(key: 'token');
+    if (token != null && token.isNotEmpty) {
+      // Token varsa ana ekrana yönlendir
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } else {
+      // Token yoksa login ekranına yönlendir
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginPage()),

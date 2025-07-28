@@ -1,14 +1,15 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../data/services/auth_service.dart';
+import '../../../data/models/login_model.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   AuthViewModel(this._authService);
 
-  // Ortak controllerlar
+  // Text controllerlar
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -29,13 +30,11 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Şifre 1 için toggle fonksiyonu (register ve login için ortak)
   void togglePasswordVisibility() {
     _obscure1 = !_obscure1;
     notifyListeners();
   }
 
-  // Login için backward compatibility: obscurePassword getter
   bool get obscurePassword => _obscure1;
 
   // Kullanıcı sözleşmesi
@@ -47,29 +46,34 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   // Auth durumları
-  User? _user;
-  User? get user => _user;
-  User? get currentUser => _authService.currentUser;
-
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
-  }
+  LoginModel? _loginModel;
+  LoginModel? get loginModel => _loginModel;
+
+  // Kullanıcı adı durumu
+  String? _userName;
+  String? get userName => _userName;
+  bool _isUserNameLoading = false;
+  bool get isUserNameLoading => _isUserNameLoading;
 
   Future<void> login() async {
     _setLoading(true);
     try {
-      _user = await _authService.login(
+      _loginModel = await _authService.login(
         emailController.text.trim(),
         passwordController.text.trim(),
       );
+      // Token'ı güvenli şekilde sakla
+      if (_loginModel?.token != null) {
+        await _secureStorage.write(key: 'token', value: _loginModel!.token);
+      }
       _errorMessage = null;
+      _userName = _loginModel?.name;
     } catch (e) {
       _errorMessage = 'Giriş başarısız: $e';
     } finally {
@@ -80,10 +84,10 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> register() async {
     _setLoading(true);
     try {
-      _user = await _authService.registerUser(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-        name: nameController.text.trim(),
+      await _authService.register(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+        nameController.text.trim(),
       );
       _errorMessage = null;
     } catch (e) {
@@ -93,8 +97,8 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  void setUser(User user) {
-    _user = user;
+  void clearError() {
+    _errorMessage = null;
     notifyListeners();
   }
 
@@ -110,22 +114,11 @@ class AuthViewModel extends ChangeNotifier {
     repeatPasswordController.clear();
   }
 
-  // Kullanıcı adı durumu
-  String? _userName;
-  String? get userName => _userName;
-  bool _isUserNameLoading = false;
-  bool get isUserNameLoading => _isUserNameLoading;
-
   Future<void> fetchUserName() async {
     _isUserNameLoading = true;
     notifyListeners();
-    final user = _user;
-    if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      _userName = doc.data()?['name'] ?? 'Kullanıcı';
-    } else {
-      _userName = 'Kullanıcı';
-    }
+    // Token ile kullanıcı adı alınacaksa burada eklenir, şimdilik loginModel'den alınıyor
+    _userName = _loginModel?.name ?? 'Kullanıcı';
     _isUserNameLoading = false;
     notifyListeners();
   }

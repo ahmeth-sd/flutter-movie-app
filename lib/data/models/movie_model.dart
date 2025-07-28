@@ -1,31 +1,36 @@
-import 'package:hive/hive.dart';
+import 'package:json_annotation/json_annotation.dart';
+import '../../domain/entities/movie.dart';
 
 part 'movie_model.g.dart';
 
-@HiveType(typeId: 0)
-class MovieModel extends HiveObject {
-  @HiveField(0)
-  final int id;
-  @HiveField(1)
-  final String title;
-  @HiveField(2)
-  final String? overview;
-  @HiveField(3)
-  final String? posterPath;
+@JsonSerializable()
+class MovieModel {
+  final String id;
 
-  MovieModel({
+  @JsonKey(name: 'Title')
+  final String title;
+
+  @JsonKey(name: 'Poster')
+  final String posterUrl;
+
+  @JsonKey(name: 'Plot')
+  final String description;
+
+  const MovieModel({
     required this.id,
     required this.title,
-    this.overview,
-    this.posterPath,
+    required this.posterUrl,
+    required this.description,
   });
 
-  factory MovieModel.fromJson(Map<String, dynamic> json) {
-    return MovieModel(
-      id: json['id'],
-      title: json['title'],
-      overview: json['overview'],
-      posterPath: json['poster_path'],
-    );
-  }
+  factory MovieModel.fromJson(Map<String, dynamic> json) => _$MovieModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MovieModelToJson(this);
+
+  Movie toEntity() => Movie(
+    id: int.tryParse(id) ?? id.hashCode,
+    title: title,
+    imageUrl: posterUrl,
+    description: description,
+  );
 }

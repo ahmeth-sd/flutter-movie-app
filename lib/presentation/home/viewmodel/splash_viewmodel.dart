@@ -9,7 +9,7 @@ class SplashViewModel extends ChangeNotifier {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
     // Kullanıcı oturum durumunu kontrol et
-    final isLoggedIn = authViewModel.user != null;
+    final isLoggedIn = authViewModel.loginModel != null;
 
     // Yönlendirme
     if (isLoggedIn) {

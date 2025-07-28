@@ -2,11 +2,13 @@ import 'dart:math';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/repositories/movie_repository.dart';
 import '../../../domain/entities/movie.dart';
+import '../../../domain/entities/movie_page_result.dart';
 import 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   final MovieRepository movieRepository;
-  final Random _random = Random();
+  int _currentPage = 1;
+  int _totalPages = 1;
   bool _isLoadingMore = false;
   final List<Movie> _allMovies = [];
 
@@ -19,13 +21,24 @@ class HomeCubit extends Cubit<HomeState> {
     if (!loadMore) {
       emit(HomeLoading());
       _allMovies.clear();
+      _currentPage = 1;
+    } else {
+      if (_currentPage >= _totalPages) {
+        _isLoadingMore = false;
+        return;
+      }
+      _currentPage++;
     }
 
     try {
-      int randomPage = _random.nextInt(500) + 1;
-      final movies = await movieRepository.getMovies(randomPage);
-      _allMovies.addAll(movies);
-      emit(HomeLoaded(List.from(_allMovies)));
+      final pageResult = await movieRepository.getMoviesPageResult(_currentPage);
+      _totalPages = pageResult.totalPages;
+      _allMovies.addAll(pageResult.movies);
+      emit(HomeLoaded(MoviePageResult(
+        movies: List.from(_allMovies),
+        currentPage: _currentPage,
+        totalPages: _totalPages,
+      )));
     } catch (e) {
       emit(HomeError('Hata: $e'));
     } finally {

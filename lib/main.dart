@@ -7,28 +7,20 @@ import 'package:shartflix_movie_app/presentation/home/viewmodel/auth_viewmodel.d
 import 'package:shartflix_movie_app/presentation/home/viewmodel/login_viewmodel.dart';
 import 'package:shartflix_movie_app/presentation/home/viewmodel/navigation_vievmodel.dart';
 import 'package:shartflix_movie_app/presentation/home/viewmodel/profile_viewmodel.dart';
-import 'package:shartflix_movie_app/data/storage/favorites_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dio/dio.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'data/datasources/movie_remote_datasource.dart';
+import 'data/datasources/favorite_movie_remote_datasource.dart';
 import 'data/services/auth_service.dart';
 import 'data/repositories/movie_repository.dart';
 import 'presentation/home/viewmodel/home_cubit.dart';
-import 'data/models/movie_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
-  // Hive başlatma ve favorites kutusunu açma
-  final appDocumentDir = await getApplicationDocumentsDirectory();
-  Hive.init(appDocumentDir.path);
-  Hive.registerAdapter(MovieModelAdapter());
-  await Hive.openBox<MovieModel>('favorites');
-
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -36,17 +28,28 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authService = AuthService();
     return MultiProvider(
       providers: [
-        Provider(create: (_) => AuthService()),
-        Provider(create: (_) => Dio()),
-        Provider(create: (context) => MovieRepository(context.read<Dio>())),
+        Provider<AuthService>.value(value: authService),
+        Provider<http.Client>(create: (_) => http.Client()),
+        Provider(
+          create: (context) => MovieRepository(
+            authService: context.read<AuthService>(),
+            client: context.read<http.Client>(),
+            remoteDataSource: MovieRemoteDataSourceImpl(client: context.read<http.Client>()),
+            secureStorage: FlutterSecureStorage(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ProfileViewModel(
+            remoteDataSource: FavoriteMovieRemoteDataSourceImpl(client: context.read<http.Client>()),
+            secureStorage: FlutterSecureStorage(),
+          ),
+        ),
         BlocProvider(create: (context) => HomeCubit(context.read<MovieRepository>())),
         ChangeNotifierProvider(create: (context) => AuthViewModel(context.read<AuthService>())),
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
-        ChangeNotifierProvider(
-          create: (_) => ProfileViewModel(FavoritesStorage()),
-        ),
         ChangeNotifierProvider(create: (_) => NavigationViewModel()),
       ],
       child: MaterialApp(
